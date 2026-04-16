@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+supabase
+python-dotenv
+apscheduler
+groq
+pydantic
