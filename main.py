@@ -105,12 +105,29 @@ class AIGoalReq(BaseModel):
 def generate_smart_goal(req: AIGoalReq):
     if groq_client:
         try:
-            prompt = f"Rewrite this as a highly professional, measurable SMART goal for an enterprise software company. Keep it under 2 sentences. Input: {req.title}"
-            res = groq_client.chat.completions.create(messages=[{"role": "user", "content": prompt}], model="llama3-8b-8192", temperature=0.3)
-            return {"suggestion": res.choices[0].message.content.strip()}
+            prompt = f """
+            You are an elite corporate performance strategist. 
+            The employee has drafted this raw, basic goal: "{req.title}"
+            
+            Your task: Rewrite this completely into a formal, highly professional SMART goal (Specific, Measurable, Achievable, Relevant, Time-bound). 
+            DO NOT just repeat their words. You must inject corporate metrics (e.g., percentages, Q3 deadlines, efficiency metrics) to make it sound professional.
+            
+            Respond ONLY with the final 1-sentence rewritten goal. No introductory text, no quotes."""
+            
+            res = groq_client.chat.completions.create(
+                messages=[
+                    {"role": "system", "content": "You are a strict data processor. Only output the final rewritten string."},
+                    {"role": "user", "content": prompt}
+                ],
+                model="llama3-70b-8192",
+                temperature=0.4
+            )
+            return {"suggestion": res.choices[0].message.content.strip(' "')}
         except Exception:
             pass
-    return {"suggestion": "Ensure goal has strict KPIs and deadlines attached."}
+    
+    # Fallback Mechanism if Groq fails or times out
+    return {"suggestion": f"Offline Engine: Ensure your goal '{req.title}' includes specific metrics and a clear deadline."}
 
 class AISentimentReq(BaseModel):
     comment: str
@@ -119,7 +136,7 @@ class AISentimentReq(BaseModel):
 def analyze_sentiment(req: AISentimentReq):
     if groq_client:
         try:
-            prompt = f"""You are an advanced HR Sentiment AI. Analyze this employee review for sentiment. 
+            prompt = f """You are an advanced HR Sentiment AI. Analyze this employee review for sentiment. 
             Pay close attention to negations (e.g., 'not good' is NEGATIVE, 'not great' is NEGATIVE).
             Respond with EXACTLY ONE WORD: 'POSITIVE', 'NEGATIVE', or 'NEUTRAL'.
             Review Text: "{req.comment}"
@@ -133,6 +150,7 @@ def analyze_sentiment(req: AISentimentReq):
         except Exception:
             pass
 
+    # Fallback Lexicon Engine
     text = req.comment.lower()
     if "not good" in text or "not great" in text or "not well" in text: return {"sentiment": "NEGATIVE", "is_flagged": True}
     if "not bad" in text or "not terrible" in text: return {"sentiment": "POSITIVE", "is_flagged": False}
