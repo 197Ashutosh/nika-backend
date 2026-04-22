@@ -103,32 +103,33 @@ class AIGoalReq(BaseModel):
 
 @app.post("/api/ai/smart-goal")
 def generate_smart_goal(req: AIGoalReq):
-    if groq_client:
-        try:
-            prompt = f"""
-            You are an elite corporate performance strategist. 
-            The employee has drafted this raw, basic goal: "{req.title}"
-            
-            Your task: Rewrite this completely into a formal, highly professional SMART goal (Specific, Measurable, Achievable, Relevant, Time-bound). 
-            DO NOT just repeat their words. You must inject corporate metrics (e.g., percentages, Q3 deadlines, efficiency metrics) to make it sound professional.
-            
-            Respond ONLY with the final 1-sentence rewritten goal. No introductory text, no quotes."""
-            
-            res = groq_client.chat.completions.create(
-                messages=[
-                    {"role": "system", "content": "You are a strict data processor. Only output the final rewritten string."},
-                    {"role": "user", "content": prompt}
-                ],
-                model="llama3-8b-8192",  # <-- REVERTED TO THE FASTER 8B MODEL SO IT CONNECTS PERFECTLY
-                temperature=0.4
-            )
-            return {"suggestion": res.choices[0].message.content.strip(' "')}
-        except Exception as e:
-            print(f"Groq AI Error: {e}")
-            pass
-    
-    # Fallback Mechanism if Groq fails or times out
-    return {"suggestion": f"Offline Engine: Ensure your goal '{req.title}' includes specific metrics and a clear deadline."}
+    # X-Ray Debugger 1: Verifying the key exists on Render
+    if not groq_client:
+        return {"suggestion": "CRITICAL ERROR: GROQ_API_KEY is missing from Render Environment Variables!"}
+        
+    try:
+        prompt = f"""
+        You are an elite corporate performance strategist. 
+        The employee has drafted this raw, basic goal: "{req.title}"
+        
+        Your task: Rewrite this completely into a formal, highly professional SMART goal (Specific, Measurable, Achievable, Relevant, Time-bound). 
+        DO NOT just repeat their words. You must inject corporate metrics (e.g., percentages, Q3 deadlines, efficiency metrics) to make it sound professional.
+        
+        Respond ONLY with the final 1-sentence rewritten goal. No introductory text, no quotes.
+        """
+        
+        res = groq_client.chat.completions.create(
+            messages=[
+                {"role": "system", "content": "You are a strict data processor. Only output the final rewritten string."},
+                {"role": "user", "content": prompt}
+            ],
+            model="llama3-8b-8192",
+            temperature=0.4
+        )
+        return {"suggestion": res.choices[0].message.content.strip(' "')}
+    except Exception as e:
+        # X-Ray Debugger 2: Printing the exact Groq failure to your screen
+        return {"suggestion": f"API FAILED. The exact error is: {str(e)}"}
 
 class AISentimentReq(BaseModel):
     comment: str
