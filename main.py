@@ -112,8 +112,7 @@ def generate_smart_goal(req: AIGoalReq):
             Your task: Rewrite this completely into a formal, highly professional SMART goal (Specific, Measurable, Achievable, Relevant, Time-bound). 
             DO NOT just repeat their words. You must inject corporate metrics (e.g., percentages, Q3 deadlines, efficiency metrics) to make it sound professional.
             
-            Respond ONLY with the final 1-sentence rewritten goal. No introductory text, no quotes.
-            """
+            Respond ONLY with the final 1-sentence rewritten goal. No introductory text, no quotes."""
             
             res = groq_client.chat.completions.create(
                 messages=[
