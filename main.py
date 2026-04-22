@@ -105,14 +105,15 @@ class AIGoalReq(BaseModel):
 def generate_smart_goal(req: AIGoalReq):
     if groq_client:
         try:
-            prompt = f """
+            prompt = f"""
             You are an elite corporate performance strategist. 
             The employee has drafted this raw, basic goal: "{req.title}"
             
             Your task: Rewrite this completely into a formal, highly professional SMART goal (Specific, Measurable, Achievable, Relevant, Time-bound). 
             DO NOT just repeat their words. You must inject corporate metrics (e.g., percentages, Q3 deadlines, efficiency metrics) to make it sound professional.
             
-            Respond ONLY with the final 1-sentence rewritten goal. No introductory text, no quotes."""
+            Respond ONLY with the final 1-sentence rewritten goal. No introductory text, no quotes.
+            """
             
             res = groq_client.chat.completions.create(
                 messages=[
@@ -136,7 +137,7 @@ class AISentimentReq(BaseModel):
 def analyze_sentiment(req: AISentimentReq):
     if groq_client:
         try:
-            prompt = f """You are an advanced HR Sentiment AI. Analyze this employee review for sentiment. 
+            prompt = f"""You are an advanced HR Sentiment AI. Analyze this employee review for sentiment. 
             Pay close attention to negations (e.g., 'not good' is NEGATIVE, 'not great' is NEGATIVE).
             Respond with EXACTLY ONE WORD: 'POSITIVE', 'NEGATIVE', or 'NEUTRAL'.
             Review Text: "{req.comment}"
