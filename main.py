@@ -119,11 +119,12 @@ def generate_smart_goal(req: AIGoalReq):
                     {"role": "system", "content": "You are a strict data processor. Only output the final rewritten string."},
                     {"role": "user", "content": prompt}
                 ],
-                model="llama3-70b-8192",
+                model="llama3-8b-8192",  # <-- REVERTED TO THE FASTER 8B MODEL SO IT CONNECTS PERFECTLY
                 temperature=0.4
             )
             return {"suggestion": res.choices[0].message.content.strip(' "')}
-        except Exception:
+        except Exception as e:
+            print(f"Groq AI Error: {e}")
             pass
     
     # Fallback Mechanism if Groq fails or times out
