@@ -103,7 +103,6 @@ class AIGoalReq(BaseModel):
 
 @app.post("/api/ai/smart-goal")
 def generate_smart_goal(req: AIGoalReq):
-    # X-Ray Debugger 1: Verifying the key exists on Render
     if not groq_client:
         return {"suggestion": "CRITICAL ERROR: GROQ_API_KEY is missing from Render Environment Variables!"}
         
@@ -123,12 +122,11 @@ def generate_smart_goal(req: AIGoalReq):
                 {"role": "system", "content": "You are a strict data processor. Only output the final rewritten string."},
                 {"role": "user", "content": prompt}
             ],
-            model="llama3-8b-8192",
+            model="llama-3.1-8b-instant",  # <--- UPDATED TO GROQ'S NEWEST ACTIVE MODEL
             temperature=0.4
         )
         return {"suggestion": res.choices[0].message.content.strip(' "')}
     except Exception as e:
-        # X-Ray Debugger 2: Printing the exact Groq failure to your screen
         return {"suggestion": f"API FAILED. The exact error is: {str(e)}"}
 
 class AISentimentReq(BaseModel):
@@ -143,7 +141,11 @@ def analyze_sentiment(req: AISentimentReq):
             Respond with EXACTLY ONE WORD: 'POSITIVE', 'NEGATIVE', or 'NEUTRAL'.
             Review Text: "{req.comment}"
             """
-            res = groq_client.chat.completions.create(messages=[{"role": "user", "content": prompt}], model="llama3-8b-8192", temperature=0.0)
+            res = groq_client.chat.completions.create(
+                messages=[{"role": "user", "content": prompt}], 
+                model="llama-3.1-8b-instant", # <--- UPDATED HERE TOO
+                temperature=0.0
+            )
             sentiment = res.choices[0].message.content.strip().upper()
             if "POSITIVE" in sentiment: sentiment = "POSITIVE"
             elif "NEGATIVE" in sentiment: sentiment = "NEGATIVE"
